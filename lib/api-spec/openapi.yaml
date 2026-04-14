@@ -3,13 +3,22 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Leakr API - connecting journalists with anonymous sources
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: leaks
+    description: Leak submission and management
+  - name: journalists
+    description: Journalist profiles and requests
+  - name: categories
+    description: Leak categories
+  - name: stats
+    description: Platform statistics
+
 paths:
   /healthz:
     get:
@@ -24,6 +33,313 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /leaks:
+    get:
+      operationId: listLeaks
+      tags: [leaks]
+      summary: List leaks
+      description: Browse available leaks with optional filtering
+      parameters:
+        - name: category
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [pending, verified, claimed, published]
+        - name: sensitivity
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [low, medium, high, critical]
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of leaks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Leak"
+
+    post:
+      operationId: createLeak
+      tags: [leaks]
+      summary: Submit a leak
+      description: Submit a new leak anonymously
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateLeakBody"
+      responses:
+        "201":
+          description: Leak submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Leak"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /leaks/{id}:
+    get:
+      operationId: getLeak
+      tags: [leaks]
+      summary: Get a leak
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Leak details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Leak"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    patch:
+      operationId: updateLeak
+      tags: [leaks]
+      summary: Update a leak
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateLeakBody"
+      responses:
+        "200":
+          description: Updated leak
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Leak"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /leaks/{id}/claim:
+    post:
+      operationId: claimLeak
+      tags: [leaks]
+      summary: Claim a leak
+      description: Journalist claims interest in a leak
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClaimLeakBody"
+      responses:
+        "200":
+          description: Claim registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Leak"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /journalists:
+    get:
+      operationId: listJournalists
+      tags: [journalists]
+      summary: List journalist profiles
+      responses:
+        "200":
+          description: List of journalist profiles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Journalist"
+
+    post:
+      operationId: createJournalist
+      tags: [journalists]
+      summary: Create journalist profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateJournalistBody"
+      responses:
+        "201":
+          description: Journalist created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Journalist"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /journalists/{id}:
+    get:
+      operationId: getJournalist
+      tags: [journalists]
+      summary: Get journalist profile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Journalist details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Journalist"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    patch:
+      operationId: updateJournalist
+      tags: [journalists]
+      summary: Update journalist profile
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateJournalistBody"
+      responses:
+        "200":
+          description: Updated journalist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Journalist"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /categories:
+    get:
+      operationId: listCategories
+      tags: [categories]
+      summary: List categories
+      responses:
+        "200":
+          description: List of categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+
+  /stats/platform:
+    get:
+      operationId: getPlatformStats
+      tags: [stats]
+      summary: Platform statistics
+      description: Returns aggregate platform stats (total leaks, journalists, categories breakdown)
+      responses:
+        "200":
+          description: Platform stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlatformStats"
+
+  /stats/recent-activity:
+    get:
+      operationId: getRecentActivity
+      tags: [stats]
+      summary: Recent activity feed
+      description: Returns the most recent platform events
+      responses:
+        "200":
+          description: Recent activity
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ActivityEvent"
+
+  /stats/sensitivity-breakdown:
+    get:
+      operationId: getSensitivityBreakdown
+      tags: [stats]
+      summary: Sensitivity level breakdown
+      description: Count of leaks by sensitivity level
+      responses:
+        "200":
+          description: Sensitivity breakdown
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SensitivityCount"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +350,259 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    Leak:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        teaser:
+          type: string
+        category:
+          type: string
+        sensitivity:
+          type: string
+          enum: [low, medium, high, critical]
+        status:
+          type: string
+          enum: [pending, verified, claimed, published]
+        anonymousHandle:
+          type: string
+        documentCount:
+          type: integer
+        claimedByJournalistId:
+          type: ["integer", "null"]
+        claimedByJournalistName:
+          type: ["string", "null"]
+        viewCount:
+          type: integer
+        verifiedAt:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - id
+        - title
+        - teaser
+        - category
+        - sensitivity
+        - status
+        - anonymousHandle
+        - documentCount
+        - claimedByJournalistId
+        - claimedByJournalistName
+        - viewCount
+        - verifiedAt
+        - createdAt
+        - updatedAt
+
+    CreateLeakBody:
+      type: object
+      properties:
+        title:
+          type: string
+        teaser:
+          type: string
+        category:
+          type: string
+        sensitivity:
+          type: string
+          enum: [low, medium, high, critical]
+        documentCount:
+          type: integer
+      required:
+        - title
+        - teaser
+        - category
+        - sensitivity
+        - documentCount
+
+    UpdateLeakBody:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [pending, verified, claimed, published]
+        verifiedAt:
+          type: ["string", "null"]
+
+    ClaimLeakBody:
+      type: object
+      properties:
+        journalistId:
+          type: integer
+      required:
+        - journalistId
+
+    Journalist:
+      type: object
+      properties:
+        id:
+          type: integer
+        displayName:
+          type: string
+        outlet:
+          type: string
+        bio:
+          type: string
+        specializations:
+          type: array
+          items:
+            type: string
+        verificationBadge:
+          type: boolean
+        leaksClaimed:
+          type: integer
+        leaksPublished:
+          type: integer
+        avatarInitials:
+          type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - id
+        - displayName
+        - outlet
+        - bio
+        - specializations
+        - verificationBadge
+        - leaksClaimed
+        - leaksPublished
+        - avatarInitials
+        - createdAt
+        - updatedAt
+
+    CreateJournalistBody:
+      type: object
+      properties:
+        displayName:
+          type: string
+        outlet:
+          type: string
+        bio:
+          type: string
+        specializations:
+          type: array
+          items:
+            type: string
+      required:
+        - displayName
+        - outlet
+        - bio
+        - specializations
+
+    UpdateJournalistBody:
+      type: object
+      properties:
+        displayName:
+          type: string
+        outlet:
+          type: string
+        bio:
+          type: string
+        specializations:
+          type: array
+          items:
+            type: string
+
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: string
+        leakCount:
+          type: integer
+        iconName:
+          type: string
+      required:
+        - id
+        - name
+        - slug
+        - description
+        - leakCount
+        - iconName
+
+    PlatformStats:
+      type: object
+      properties:
+        totalLeaks:
+          type: integer
+        totalJournalists:
+          type: integer
+        totalCategories:
+          type: integer
+        verifiedLeaks:
+          type: integer
+        claimedLeaks:
+          type: integer
+        publishedLeaks:
+          type: integer
+        pendingLeaks:
+          type: integer
+        criticalLeaks:
+          type: integer
+      required:
+        - totalLeaks
+        - totalJournalists
+        - totalCategories
+        - verifiedLeaks
+        - claimedLeaks
+        - publishedLeaks
+        - pendingLeaks
+        - criticalLeaks
+
+    ActivityEvent:
+      type: object
+      properties:
+        id:
+          type: integer
+        eventType:
+          type: string
+          enum: [leak_submitted, leak_verified, leak_claimed, leak_published]
+        description:
+          type: string
+        timestamp:
+          type: string
+        category:
+          type: string
+        sensitivity:
+          type: string
+          enum: [low, medium, high, critical]
+      required:
+        - id
+        - eventType
+        - description
+        - timestamp
+        - category
+        - sensitivity
+
+    SensitivityCount:
+      type: object
+      properties:
+        sensitivity:
+          type: string
+          enum: [low, medium, high, critical]
+        count:
+          type: integer
+      required:
+        - sensitivity
+        - count
