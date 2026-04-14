@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "api-server",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--cwd", "artifacts/api-server", "run", "dev"],
+      "port": 3000
+    },
+    {
+      "name": "mockup-sandbox",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--cwd", "artifacts/mockup-sandbox", "run", "dev"],
+      "port": 5173
+    },
+    {
+      "name": "leakr",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--cwd", "artifacts/leakr", "run", "dev"],
+      "port": 5174
+    }
+  ]
+}
